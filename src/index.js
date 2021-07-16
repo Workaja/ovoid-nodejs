@@ -3,14 +3,14 @@ const { ovo, ovoAws } = require('./helper/request')
 const uuid = require('uuid/v4')
 
 class OVOID {
-  constructor(authToken) {
+  constructor(authToken, headers) {
     this.authToken = authToken
     this.headers = {
-      'app-id': APP_ID,
-      'App-Version': APP_VERSION,
-      'OS': OS_NAME
+      'app-id': headers.appId ?? APP_ID,
+      'App-Version': headers.appVersion ?? APP_VERSION,
+      'OS': headers.osName ?? OS_NAME
     }
-
+    this.header_components = headers
   }
 
   login2FA(mobilePhone) {
@@ -25,12 +25,12 @@ class OVOID {
 
   login2FAVerify(refId, verificationCode, mobilePhone) {
     let data = {
-      'appVersion': APP_VERSION,
+      'appVersion': this.header_components.appVersion ?? APP_VERSION,
       'deviceId': uuid(),
-      'macAddress': MAC_ADDRESS,
+      'macAddress': this.header_components.macAddress ?? MAC_ADDRESS,
       'mobile': mobilePhone,
-      'osName': OS_NAME,
-      'osVersion': OS_VERSION,
+      'osName': this.header_components.osName ?? OS_NAME,
+      'osVersion': this.header_components.osVersion ?? OS_VERSION,
       'pushNotificationId': 'FCM|f4OXYs_ZhuM:APA91bGde-ie2YBhmbALKPq94WjYex8gQDU2NMwJn_w9jYZx0emAFRGKHD2NojY6yh8ykpkcciPQpS0CBma-MxTEjaet-5I3T8u_YFWiKgyWoH7pHk7MXChBCBRwGRjMKIPdi3h0p2z7',
       'refId': refId,
       'verificationCode': verificationCode
@@ -96,7 +96,7 @@ class OVOID {
       'amount': amount,
       'message': message === "" ? 'Sent from ovoid-nodejs' : message,
       'to': to_mobilePhone,
-      'trxId': await this._generateTrxId(amount, TRANSFER_OVO)
+      'trxId': await this._generateTrxId(amount, this.header_components.transferOvo ?? TRANSFER_OVO)
     };
     return ovo.post('v1.0/api/customers/transfer', data, this._aditionalHeader())
   }
@@ -129,7 +129,7 @@ class OVOID {
       'bankName': bankName,
       'message': message === "" ? 'Sent from ovoid-nodejs' : message,
       'notes': notes === "" ? 'Sent from ovoid-nodejs' : notes,
-      'transactionId': await this._generateTrxId(amount, TRANSFER_BANK)
+      'transactionId': await this._generateTrxId(amount, this.header_components.transferBank ?? TRANSFER_BANK)
     };
     return ovo.post('transfer/direct', data, this._aditionalHeader())
   }
@@ -164,7 +164,7 @@ class OVOID {
   customerUnlock(securityCode)
   {
       let data = {
-        'appVersion': APP_VERSION,
+        'appVersion': this.header_components.appVersion ?? APP_VERSION,
         'securityCode': securityCode
       };
       return ovo.post('v1.0/api/auth/customer/unlock', data, this._aditionalHeader());
